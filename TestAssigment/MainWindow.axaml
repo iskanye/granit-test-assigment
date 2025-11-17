@@ -5,5 +5,8 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TestAssigment.MainWindow"
         Title="TestAssigment">
-    Welcome to Avalonia!
+    <StackPanel Margin="20">
+        <Button Click="ButtonClick">Press Me!</Button>
+        <TextBlock Margin="0 10" x:Name="message">Ready...</TextBlock>
+    </StackPanel>
 </Window>

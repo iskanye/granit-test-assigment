@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using ProjectsGenerator;
 
 class Program
 {
@@ -107,20 +108,18 @@ class Program
 
     public static int Main(string[] args)
     {
-        if (args.Length == 0)
-        {
-            Console.WriteLine("no args");
-        }
-
         try
         {
+            var arguments = new Arguments(args);
+            
             var connectionString = "Data Source=usersdata.db";
             using var conn = new SqliteConnection(connectionString);
             InitDB(conn);
         }
         catch (Exception e)
         {
-            Console.WriteLine("error: " + e.ToString());
+            Console.WriteLine(e.Message);
+            return 1;
         }
 
         return 0;
