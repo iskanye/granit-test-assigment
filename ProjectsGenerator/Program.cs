@@ -44,18 +44,10 @@ public static class Program
 
     public static int Main(string[] args)
     {
-        try
-        {
-            _args = new Arguments(args);
+        _args = new Arguments(args);
 
-            using var db = new Database(_args.Path);
-            db.Init();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.ToString());
-            return 1;
-        }
+        using var db = new Database(_args.Path);
+        db.Init();
 
         return 0;
     }

@@ -4,8 +4,8 @@ namespace ProjectsGenerator;
 
 public class Database(string path) : IDisposable
 {
-    private const int MinInserts = 99;
-    private const int MaxInserts = 2000;
+    private const int MaxChecksPerObject = 9;
+    private const int MaxStepsPerCheck = 200;
     private const int MaxModifications = 5;
     private const int MaxPortID = 10;
 
@@ -32,11 +32,12 @@ public class Database(string path) : IDisposable
         );
         CREATE TABLE IF NOT EXISTS checks
         (
+            obj_id INTEGER NOT NULL,
+            check_num INTEGER NOT NULL,
             contact1 TEXT NOT NULL,
             contact2 TEXT NOT NULL,
             check_type TEXT NOT NULL,
-            obj_id INTEGER NOT NULL,
-            modifications TEXT NOT NULL,
+            modifications TEXT NOT NULL UNIQUE,
             FOREIGN KEY (obj_id) REFERENCES objects(obj_id)
         );
         """;
@@ -70,13 +71,14 @@ public class Database(string path) : IDisposable
 
     private const string ChecksInsertStmt =
         """
-        INSERT INTO checks (contact1, contact2, check_type, obj_id, modifications)
+        INSERT INTO checks (obj_id, check_num, contact1, contact2, check_type, modifications)
         VALUES 
         (
+            @obj_id,
+            @check_num,
             @contact1,
             @contact2,
             @check_type,
-            @obj_id,
             @modifications
         );
         """;
@@ -85,6 +87,7 @@ public class Database(string path) : IDisposable
     private const string GetObjectIdStmt =
         "SELECT obj_id FROM objects WHERE name = @obj_name;";
 
+    // Получение контакта объекта
     private const string GetContactsStmt =
         "SELECT contact FROM layout WHERE obj_id = @obj_id ORDER BY RANDOM() LIMIT 2;";
 
@@ -145,55 +148,71 @@ public class Database(string path) : IDisposable
         }
 
         // Вставка проверок
-        var inserts = Random.Shared.Next(MinInserts, MaxInserts);
-        for (int i = 0; i < inserts; i++)
+        foreach (var obj in ChecksConstants.Objects)
         {
-            var obj = ChecksConstants.RandomElement(ChecksConstants.Objects);
-            var checkType = "Измерение " + ChecksConstants.RandomElement(ChecksConstants.CheckTypes);
-
-            // Ограничиваем количество модификаций их максимальным числом
-            var modsCount = Math.Min(Random.Shared.Next(1, MaxModifications),
-                ChecksConstants.Modifications[obj].Length);
-
-            // Составление списка модификаций
-            var modsList = new string[ChecksConstants.Modifications[obj].Length];
-            ChecksConstants.Modifications[obj].CopyTo(modsList, 0);
-            Random.Shared.Shuffle(modsList);
-
-            var mods = new string[modsCount];
-            for (int j = 0; j < modsCount; j++)
+            var checks = Random.Shared.Next(1, MaxChecksPerObject + 1);
+            for (int check = 0; check < checks; check++)
             {
-                mods[j] = modsList[j];
+                var steps = Random.Shared.Next(1, MaxStepsPerCheck + 1);
+                for (int j = 0; j < steps; j++)
+                {
+                    var checkType = "Измерение " + ChecksConstants.RandomElement(ChecksConstants.CheckTypes);
+
+                    // Ограничиваем количество модификаций их максимальным числом
+                    var modsCount = Math.Min(Random.Shared.Next(1, MaxModifications),
+                        ChecksConstants.Modifications[obj].Length);
+
+                    // Составление списка модификаций
+                    var modsList = new string[ChecksConstants.Modifications[obj].Length];
+                    ChecksConstants.Modifications[obj].CopyTo(modsList, 0);
+                    Random.Shared.Shuffle(modsList);
+
+                    var mods = new string[modsCount];
+                    for (int k = 0; k < modsCount; k++)
+                    {
+                        mods[k] = modsList[k];
+                    }
+
+                    // Поиск id объекта
+                    using var getId = new SqliteCommand(GetObjectIdStmt, _connection);
+                    getId.Parameters.Add("@obj_name", SqliteType.Text).Value = obj;
+
+                    var objId = (long)(getId.ExecuteScalar() ?? 0);
+
+                    // Получение контактов
+                    using var getContacts = new SqliteCommand(GetContactsStmt, _connection);
+                    getContacts.Parameters.Add("@obj_id", SqliteType.Integer).Value = objId;
+
+                    var contacts = new string[2];
+                    using var reader = getContacts.ExecuteReader();
+
+                    // Запись списка контактов в массив
+                    reader.Read();
+                    contacts[0] = reader.GetString(0);
+                    reader.Read();
+                    contacts[1] = reader.GetString(0);
+
+                    // Запуск вставки
+                    using var insertCheck = new SqliteCommand(ChecksInsertStmt, _connection);
+                    insertCheck.Parameters.Add("@obj_id", SqliteType.Integer).Value = objId;
+                    insertCheck.Parameters.Add("@check_num", SqliteType.Integer).Value = check + 1;
+                    insertCheck.Parameters.Add("@contact1", SqliteType.Text).Value = contacts[0];
+                    insertCheck.Parameters.Add("@contact2", SqliteType.Text).Value = contacts[1];
+                    insertCheck.Parameters.Add("@check_type", SqliteType.Text).Value = checkType;
+                    insertCheck.Parameters.Add("@modifications", SqliteType.Text).Value = string.Join(", ", mods);
+
+                    try
+                    {
+                        insertCheck.ExecuteNonQuery();
+                    }
+                    catch (SqliteException ex)
+                    {
+                        if (ex.SqliteErrorCode == 19)
+                            continue;
+                        break;
+                    }
+                }
             }
-
-            // Поиск id объекта
-            using var getId = new SqliteCommand(GetObjectIdStmt, _connection);
-            getId.Parameters.Add("@obj_name", SqliteType.Text).Value = obj;
-
-            var objId = (long)(getId.ExecuteScalar() ?? 0);
-
-            // Получение контактов
-            using var getContacts = new SqliteCommand(GetContactsStmt, _connection);
-            getContacts.Parameters.Add("@obj_id", SqliteType.Integer).Value = objId;
-
-            var contacts = new string[2];
-            using var reader = getContacts.ExecuteReader();
-
-            for (int j = 0; j < 2; j++)
-            {
-                reader.Read();
-                contacts[j] = reader.GetString(0);
-            }
-
-            // Запуск вставки
-            using var insertCheck = new SqliteCommand(ChecksInsertStmt, _connection);
-            insertCheck.Parameters.Add("@contact1", SqliteType.Text).Value = contacts[0];
-            insertCheck.Parameters.Add("@contact2", SqliteType.Text).Value = contacts[1];
-            insertCheck.Parameters.Add("@check_type", SqliteType.Text).Value = checkType;
-            insertCheck.Parameters.Add("@obj_id", SqliteType.Integer).Value = objId;
-            insertCheck.Parameters.Add("@modifications", SqliteType.Integer).Value = string.Join(", ", mods);
-
-            insertCheck.ExecuteNonQuery();
         }
     }
 
