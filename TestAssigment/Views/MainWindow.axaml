@@ -3,18 +3,29 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:TestAssigment.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
-        MinWidth="600" MinHeight="400" FontSize="14"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        MinWidth="900" MinHeight="600" FontSize="14"
         x:DataType="vm:MainWindowViewModel"
+        x:CompileBindings="True"
         x:Class="TestAssigment.Views.MainWindow"
-        Title="TestAssigment">
+        Title="Проверки аппаратуры">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
     <DockPanel>
         <!-- Меню -->
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_Файл">
-                <MenuItem Header="_Открыть проект" />
+                <MenuItem
+                    Header="_Открыть проект"
+                    Command="{Binding OpenProjectCommand}" />
                 <Separator />
-                <MenuItem Header="_Закрыть" IsEnabled="False" />
+                <MenuItem
+                    Header="_Закрыть"
+                    Command="{Binding CloseProjectCommand}"
+                    IsEnabled="{Binding IsProjectLoaded}" />
             </MenuItem>
         </Menu>
 
@@ -22,55 +33,66 @@
         <Grid
             DockPanel.Dock="Top"
             ColumnDefinitions="*, *, *"
-            RowDefinitions="Auto, Auto"
+            RowDefinitions="Auto, Auto, Auto"
             Margin="10">
             <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Center">Объекты</Label>
             <Label Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center">Модификации</Label>
             <Label Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center">Проверки</Label>
 
             <ComboBox
-                x:Name="ObjectsDropDown"
                 Grid.Row="1"
                 Grid.Column="0"
-                Margin="5 0"
+                Margin="5"
                 HorizontalAlignment="Stretch"
-                IsEnabled="False">
+                IsEnabled="{Binding IsProjectLoaded}">
             </ComboBox>
             <ComboBox
-                x:Name="ModificationsDropDown"
                 Grid.Row="1"
                 Grid.Column="1"
-                Margin="5 0"
+                Margin="5"
                 HorizontalAlignment="Stretch"
-                IsEnabled="False">
+                IsEnabled="{Binding IsProjectLoaded}">
             </ComboBox>
             <ComboBox
-                x:Name="ChecksDropDown"
                 Grid.Row="1"
                 Grid.Column="2"
-                Margin="5 0"
+                Margin="5 "
                 HorizontalAlignment="Stretch"
-                IsEnabled="False">
+                IsEnabled="{Binding IsProjectLoaded}">
             </ComboBox>
+
+            <Button
+                Grid.Row="2"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center"
+                IsEnabled="{Binding IsProjectLoaded}"
+                Margin="5">
+                Запустить выбранную проверку
+            </Button>
         </Grid>
         <DataGrid
+            DockPanel.Dock="Top"
             Margin="20"
-            x:Name="MainDataGrid"
             AutoGenerateColumns="False"
             IsReadOnly="True"
             ItemsSource="{Binding Checks}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="№" Width="60" Binding="{Binding N}" />
-                <DataGridTextColumn Header="Контакт 1" Width="*" Binding="{Binding Contact1}" />
-                <DataGridTextColumn Header="Контакт 1" Width="*" Binding="{Binding Contact2}" />
-                <DataGridTextColumn Header="Тип проверки" Width="*" Binding="{Binding CheckType}" />
-                <DataGridTextColumn Header="Объект" Width="*" Binding="{Binding Object}" />
-                <DataGridTextColumn Header="Модификации Объекта" Width="*" Binding="{Binding Modifications}" />
-                <DataGridTextColumn Header="Результат проверки" Width="*" Binding="{Binding CheckResult}" />
+                <DataGridTextColumn Header="№" Width="Auto" Binding="{Binding N}" />
+                <DataGridTextColumn Header="Контакт 1" Width="Auto" Binding="{Binding Contact1}" />
+                <DataGridTextColumn Header="Контакт 2" Width="Auto" Binding="{Binding Contact2}" />
+                <DataGridTextColumn Header="Тип проверки" Width="Auto" Binding="{Binding CheckType}" />
+                <DataGridTextColumn Header="Объект" Width="Auto" Binding="{Binding Object}" />
+                <DataGridTextColumn Header="Модификации объекта" Width="Auto" Binding="{Binding Modifications}" />
+                <DataGridTextColumn Header="Результат проверки" Width="Auto" Binding="{Binding CheckResult}" />
             </DataGrid.Columns>
-
-            <!-- Пример данных для демонстрации -->
         </DataGrid>
+        <Label
+            HorizontalAlignment="Stretch"
+            Margin="10"
+            Content="{Binding Message}"
+            DockPanel.Dock="Bottom" />
         <TextBlock />
     </DockPanel>
 </Window>
