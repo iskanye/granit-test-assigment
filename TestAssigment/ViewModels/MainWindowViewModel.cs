@@ -20,7 +20,26 @@ public class MainWindowViewModel : ViewModelBase
         {
             Message = value == null ? "" : "Загрузка проекта...";
             IsProjectLoaded = value != null;
-            this.RaiseAndSetIfChanged(ref _selectedProject, value);
+
+            Title = value == null ? "" : value.Name;
+
+            _selectedProject = value;
+        }
+    }
+
+    public string Title
+    {
+        get => _title;
+        set
+        {
+            if (value != "")
+            {
+                this.RaiseAndSetIfChanged(ref _title, value + " | Проверки аппаратуры");
+            }
+            else
+            {
+                this.RaiseAndSetIfChanged(ref _title, "Проверки аппаратуры");
+            }
         }
     }
 
@@ -36,19 +55,20 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _message, value);
     }
 
-    public ObservableCollection<Check> Checks
-    {
-        get => _checks;
-        set => this.RaiseAndSetIfChanged(ref _checks, value);
-    }
+    public ObjectsViewModel ObjectsViewModel { get; } = new ObjectsViewModel();
+
+    public ModificationsViewModel ModificationsViewModel { get; } = new ModificationsViewModel();
+
+    public ChecksViewModel ChecksViewModel { get; } = new ChecksViewModel();
 
     public ReactiveCommand<Unit, Unit> OpenProjectCommand { get; }
     public ReactiveCommand<Unit, Unit> CloseProjectCommand { get; }
 
     private Project? _selectedProject;
+
+    private string _title = "Проверки аппаратуры";
     private bool _isProjectLoaded;
     private string _message = "";
-    private ObservableCollection<Check> _checks = [];
 
     public MainWindowViewModel()
     {

@@ -10,9 +10,11 @@ public class Project : IDisposable
 {
     private class JsonProject
     {
-        public string Name { get; }
-        public string Equipment { get; }
+        public string Name { get; set; }
+        public string Equipment { get; set; }
     }
+
+    public string Name { get; }
 
     public SqliteConnection Database { get; }
     public SqliteConnection? ChecksResultDB { get; }
@@ -34,6 +36,8 @@ public class Project : IDisposable
             {
                 Database = new SqliteConnection($"Filename={uri.LocalPath + "\\checkResults.db"}.db");
             }
+
+            Name = project.Name;
         }
         else
         {

@@ -8,7 +8,7 @@
         x:DataType="vm:MainWindowViewModel"
         x:CompileBindings="True"
         x:Class="TestAssigment.Views.MainWindow"
-        Title="Проверки аппаратуры">
+        Title="{Binding Title}">
 
     <Design.DataContext>
         <vm:MainWindowViewModel />
@@ -44,14 +44,16 @@
                 Grid.Column="0"
                 Margin="5"
                 HorizontalAlignment="Stretch"
-                IsEnabled="{Binding IsProjectLoaded}">
+                IsEnabled="{Binding IsProjectLoaded}"
+                ItemsSource="{Binding ObjectsViewModel.Objects}">
             </ComboBox>
             <ComboBox
                 Grid.Row="1"
                 Grid.Column="1"
                 Margin="5"
                 HorizontalAlignment="Stretch"
-                IsEnabled="{Binding IsProjectLoaded}">
+                IsEnabled="{Binding IsProjectLoaded}"
+                ItemsSource="{Binding ModificationsViewModel.Modifications}">
             </ComboBox>
             <ComboBox
                 Grid.Row="1"
@@ -77,7 +79,7 @@
             Margin="20"
             AutoGenerateColumns="False"
             IsReadOnly="True"
-            ItemsSource="{Binding Checks}">
+            ItemsSource="{Binding ChecksViewModel.Checks}">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="№" Width="Auto" Binding="{Binding N}" />
                 <DataGridTextColumn Header="Контакт 1" Width="Auto" Binding="{Binding Contact1}" />
