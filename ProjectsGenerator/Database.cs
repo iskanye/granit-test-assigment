@@ -7,7 +7,7 @@ public class Database(string path) : IDisposable
     private const int MaxChecksPerObject = 9;
     private const int MaxStepsPerCheck = 200;
     private const int MaxModifications = 5;
-    private const int MaxPortID = 10;
+    private const int MaxPortId = 10;
 
     // Команды для создания таблиц в базе данных
     private const string TableCreationStmt =
@@ -135,7 +135,7 @@ public class Database(string path) : IDisposable
             for (int i = 0; i < Random.Shared.Next(2, contacts.Length + 1); i++)
             {
                 var contact = "Контакт " + contacts[i];
-                var port = "Порт " + Random.Shared.Next(1, MaxPortID);
+                var port = "Порт " + Random.Shared.Next(1, MaxPortId);
 
                 using var insertMods = new SqliteCommand(LayoutInsertStmt, _connection);
 

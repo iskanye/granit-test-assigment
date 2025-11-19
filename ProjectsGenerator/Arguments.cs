@@ -2,8 +2,8 @@ namespace ProjectsGenerator;
 
 public struct Arguments
 {
-    public string Path = "";
-    public int ProjectsNum = 100;
+    public readonly string Path = "";
+    public readonly int ProjectsNum = 20;
 
     public Arguments(string[] args)
     {
