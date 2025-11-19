@@ -150,9 +150,11 @@ public class Database(string path) : IDisposable
         // Вставка проверок
         foreach (var obj in ChecksConstants.Objects)
         {
+            // Номер проверки
             var checks = Random.Shared.Next(1, MaxChecksPerObject + 1);
             for (int check = 0; check < checks; check++)
             {
+                // Шаг проверки
                 var steps = Random.Shared.Next(1, MaxStepsPerCheck + 1);
                 for (int j = 0; j < steps; j++)
                 {

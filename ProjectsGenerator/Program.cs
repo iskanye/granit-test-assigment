@@ -17,7 +17,7 @@ public static class Program
                 tasks[i] = project.Save();
             }
 
-            Task.WaitAll(tasks);
+            await Task.WhenAll(tasks);
         }
         catch (Exception e)
         {
