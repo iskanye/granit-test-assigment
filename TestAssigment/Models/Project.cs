@@ -33,13 +33,24 @@ public class Project : IDisposable
         """;
 
 
-    private const string LoadChecksStmt =
+    private const string LoadCheckNumsStmt =
         """
         SELECT DISTINCT check_num 
         FROM checks
         WHERE 
             obj_id = (SELECT obj_id FROM objects WHERE name = @obj_name) AND
             modifications LIKE @modification
+        ;
+        """;
+
+    private const string LoadCheckStmt =
+        """
+        SELECT contact1, contact2, check_type, modifications 
+        FROM checks
+        WHERE 
+            obj_id = (SELECT obj_id FROM objects WHERE name = @obj_name) AND
+            modifications LIKE @modification AND
+            check_num = @check_num
         ;
         """;
 
@@ -104,16 +115,43 @@ public class Project : IDisposable
 
     public List<int> LoadCheckNums(string obj, string modification)
     {
-        using var loadModifications = new SqliteCommand(LoadChecksStmt, Database);
-        loadModifications.Parameters.Add("@obj_name", SqliteType.Text).Value = obj;
-        loadModifications.Parameters.Add("@modification", SqliteType.Text).Value = $"%{modification}%";
+        using var loadCheckNums = new SqliteCommand(LoadCheckNumsStmt, Database);
+        loadCheckNums.Parameters.Add("@obj_name", SqliteType.Text).Value = obj;
+        loadCheckNums.Parameters.Add("@modification", SqliteType.Text).Value = $"%{modification}%";
 
-        var reader = loadModifications.ExecuteReader();
+        var reader = loadCheckNums.ExecuteReader();
         var result = new List<int>();
 
         while (reader.Read())
         {
             result.Add(reader.GetInt32(0));
+        }
+
+        return result;
+    }
+
+    public List<Check> LoadChecks(string obj, string modification, int check_num)
+    {
+        using var loadChechs = new SqliteCommand(LoadCheckStmt, Database);
+        loadChechs.Parameters.Add("@obj_name", SqliteType.Text).Value = obj;
+        loadChechs.Parameters.Add("@modification", SqliteType.Text).Value = $"%{modification}%";
+        loadChechs.Parameters.Add("@check_num", SqliteType.Integer).Value = check_num;
+
+        var reader = loadChechs.ExecuteReader();
+        var result = new List<Check>();
+
+        ulong i = 1;
+        while (reader.Read())
+        {
+            var check = new Check(
+                i++,
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetString(3),
+                reader.GetString(4),
+                null);
+            result.Add(check);
         }
 
         return result;

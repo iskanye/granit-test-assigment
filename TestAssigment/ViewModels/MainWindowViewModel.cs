@@ -64,7 +64,11 @@ public class MainWindowViewModel : ViewModelBase
                 ModificationsViewModel.Modifications =
                     new ObservableCollection<string>(CurrentProject?.LoadModification(value));
             else
+            {
                 ModificationsViewModel.Modifications.Clear();
+                ChecksViewModel.CheckNums.Clear();
+                ChecksViewModel.Checks.Clear();
+            }
 
             this.RaiseAndSetIfChanged(ref _selectedObject, value);
         }
@@ -79,9 +83,29 @@ public class MainWindowViewModel : ViewModelBase
                 ChecksViewModel.CheckNums =
                     new ObservableCollection<int>(CurrentProject?.LoadCheckNums(SelectedObject, value));
             else
+            {
                 ChecksViewModel.CheckNums.Clear();
+                ChecksViewModel.CheckNums.Clear();
+                ChecksViewModel.Checks.Clear();
+            }
 
             this.RaiseAndSetIfChanged(ref _selectedModification, value);
+        }
+    }
+
+    public int SelectedCheckNum
+    {
+        get => _selectedCheckNum;
+        set
+        {
+            if (value != 0 && SelectedModification != "" && SelectedObject != "")
+                ChecksViewModel.Checks =
+                    new ObservableCollection<Check>(
+                        CurrentProject?.LoadChecks(SelectedObject, SelectedModification, value));
+            else
+                ChecksViewModel.Checks.Clear();
+
+            this.RaiseAndSetIfChanged(ref _selectedCheckNum, value);
         }
     }
 
@@ -102,6 +126,7 @@ public class MainWindowViewModel : ViewModelBase
     private string _message = "";
     private string _selectedObject = "";
     private string _selectedModification = "";
+    private int _selectedCheckNum = 0;
 
     public MainWindowViewModel()
     {
