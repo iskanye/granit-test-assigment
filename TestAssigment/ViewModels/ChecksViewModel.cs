@@ -1,10 +1,23 @@
 using System.Collections.ObjectModel;
 using TestAssigment.Models;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace TestAssigment.ViewModels;
 
-public class ChecksViewModel
+public class ChecksViewModel : ObservableObject
 {
-    public ObservableCollection<int> CheckNums { get; set; }
-    public ObservableCollection<Check> Checks { get; set; }
+    private ObservableCollection<int> _checkNums;
+    private ObservableCollection<Check> _checks;
+
+    public ObservableCollection<int> CheckNums
+    {
+        get => _checkNums;
+        set => SetProperty(ref _checkNums, value);
+    }
+
+    public ObservableCollection<Check> Checks
+    {
+        get => _checks;
+        set => SetProperty(ref _checks, value);
+    }
 }

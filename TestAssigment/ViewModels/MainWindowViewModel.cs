@@ -99,6 +99,8 @@ public class MainWindowViewModel : ViewModelBase
                 {
                     CurrentProject = new Project(folder[0].Path);
                     Message = "";
+
+                    ObjectsViewModel.Objects = new ObservableCollection<string>(CurrentProject.LoadObjects());
                 }
                 catch (FileNotFoundException ex)
                 {

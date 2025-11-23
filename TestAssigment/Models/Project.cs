@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -17,7 +18,12 @@ public class Project : IDisposable
     public string Name { get; }
 
     public SqliteConnection Database { get; }
-    public SqliteConnection? ChecksResultDB { get; }
+    public SqliteConnection? ChecksResultDb { get; }
+
+    private const string LoadObjectsStmt =
+        """
+        SELECT name FROM objects;
+        """;
 
     public Project(Uri uri)
     {
@@ -34,7 +40,7 @@ public class Project : IDisposable
             // Проверяем есть ли файл проверок
             if (files.Any(f => f.Name == "checkResults.db"))
             {
-                Database = new SqliteConnection($"Filename={uri.LocalPath + "\\checkResults.db"}.db");
+                ChecksResultDb = new SqliteConnection($"Filename={uri.LocalPath + "\\checkResults.db"}.db");
             }
 
             Name = project.Name;
@@ -43,12 +49,31 @@ public class Project : IDisposable
         {
             throw new FileNotFoundException("Не найден файл проекта", uri.LocalPath);
         }
+
+        Database.Open();
+    }
+
+    public List<string> LoadObjects()
+    {
+        using var loadObjects = new SqliteCommand(LoadObjectsStmt, Database);
+        var reader = loadObjects.ExecuteReader();
+
+        var result = new List<string>();
+
+        while (reader.Read())
+        {
+            result.Add(reader.GetString(0));
+        }
+
+        return result;
     }
 
     public void Dispose()
     {
+        Database.Close();
+        ChecksResultDb?.Close();
         Database.Dispose();
-        ChecksResultDB?.Dispose();
+        ChecksResultDb?.Dispose();
 
         GC.SuppressFinalize(this);
     }
