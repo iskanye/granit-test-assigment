@@ -25,6 +25,24 @@ public class Project : IDisposable
         SELECT name FROM objects;
         """;
 
+    private const string LoadModificationsStmt =
+        """
+        SELECT name 
+        FROM modifications
+        WHERE obj_id = (SELECT obj_id FROM objects WHERE name = @obj_name);
+        """;
+
+
+    private const string LoadChecksStmt =
+        """
+        SELECT DISTINCT check_num 
+        FROM checks
+        WHERE 
+            obj_id = (SELECT obj_id FROM objects WHERE name = @obj_name) AND
+            modifications LIKE @modification
+        ;
+        """;
+
     public Project(Uri uri)
     {
         var files = (new DirectoryInfo(uri.LocalPath)).GetFiles();
@@ -63,6 +81,39 @@ public class Project : IDisposable
         while (reader.Read())
         {
             result.Add(reader.GetString(0));
+        }
+
+        return result;
+    }
+
+    public List<string> LoadModification(string obj)
+    {
+        using var loadModifications = new SqliteCommand(LoadModificationsStmt, Database);
+        loadModifications.Parameters.Add("@obj_name", SqliteType.Text).Value = obj;
+
+        var reader = loadModifications.ExecuteReader();
+        var result = new List<string>();
+
+        while (reader.Read())
+        {
+            result.Add(reader.GetString(0));
+        }
+
+        return result;
+    }
+
+    public List<int> LoadCheckNums(string obj, string modification)
+    {
+        using var loadModifications = new SqliteCommand(LoadChecksStmt, Database);
+        loadModifications.Parameters.Add("@obj_name", SqliteType.Text).Value = obj;
+        loadModifications.Parameters.Add("@modification", SqliteType.Text).Value = $"%{modification}%";
+
+        var reader = loadModifications.ExecuteReader();
+        var result = new List<int>();
+
+        while (reader.Read())
+        {
+            result.Add(reader.GetInt32(0));
         }
 
         return result;

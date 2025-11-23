@@ -55,12 +55,43 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _message, value);
     }
 
+    public string SelectedObject
+    {
+        get => _selectedObject;
+        set
+        {
+            if (value != "")
+                ModificationsViewModel.Modifications =
+                    new ObservableCollection<string>(CurrentProject?.LoadModification(value));
+            else
+                ModificationsViewModel.Modifications.Clear();
+
+            this.RaiseAndSetIfChanged(ref _selectedObject, value);
+        }
+    }
+
+    public string SelectedModification
+    {
+        get => _selectedModification;
+        set
+        {
+            if (value != "" && SelectedObject != "")
+                ChecksViewModel.CheckNums =
+                    new ObservableCollection<int>(CurrentProject?.LoadCheckNums(SelectedObject, value));
+            else
+                ChecksViewModel.CheckNums.Clear();
+
+            this.RaiseAndSetIfChanged(ref _selectedModification, value);
+        }
+    }
+
     public ObjectsViewModel ObjectsViewModel { get; } = new ObjectsViewModel();
 
     public ModificationsViewModel ModificationsViewModel { get; } = new ModificationsViewModel();
 
     public ChecksViewModel ChecksViewModel { get; } = new ChecksViewModel();
 
+    // Команды
     public ReactiveCommand<Unit, Unit> OpenProjectCommand { get; }
     public ReactiveCommand<Unit, Unit> CloseProjectCommand { get; }
 
@@ -69,6 +100,8 @@ public class MainWindowViewModel : ViewModelBase
     private string _title = "Проверки аппаратуры";
     private bool _isProjectLoaded;
     private string _message = "";
+    private string _selectedObject = "";
+    private string _selectedModification = "";
 
     public MainWindowViewModel()
     {
