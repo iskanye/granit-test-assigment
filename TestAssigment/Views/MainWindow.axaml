@@ -74,6 +74,7 @@
                 HorizontalAlignment="Stretch"
                 HorizontalContentAlignment="Center"
                 IsEnabled="{Binding IsProjectLoaded}"
+                Command="{Binding StartChecksCommand}"
                 Margin="5">
                 Запустить выбранную проверку
             </Button>

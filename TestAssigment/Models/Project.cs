@@ -148,8 +148,8 @@ public class Project : IDisposable
                 reader.GetString(0),
                 reader.GetString(1),
                 reader.GetString(2),
+                obj,
                 reader.GetString(3),
-                reader.GetString(4),
                 null);
             result.Add(check);
         }

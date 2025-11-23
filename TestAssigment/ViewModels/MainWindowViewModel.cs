@@ -13,7 +13,9 @@ namespace TestAssigment.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-    public Project? CurrentProject
+    private const int MaxCheckResult = 100000;
+
+    private Project? CurrentProject
     {
         get => _selectedProject;
         set
@@ -62,7 +64,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             if (value != "")
                 ModificationsViewModel.Modifications =
-                    new ObservableCollection<string>(CurrentProject?.LoadModification(value));
+                    new ObservableCollection<string>(CurrentProject?.LoadModification(value) ?? []);
             else
             {
                 ModificationsViewModel.Modifications.Clear();
@@ -81,7 +83,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             if (value != "" && SelectedObject != "")
                 ChecksViewModel.CheckNums =
-                    new ObservableCollection<int>(CurrentProject?.LoadCheckNums(SelectedObject, value));
+                    new ObservableCollection<int>(CurrentProject?.LoadCheckNums(SelectedObject, value) ?? []);
             else
             {
                 ChecksViewModel.CheckNums.Clear();
@@ -101,7 +103,7 @@ public class MainWindowViewModel : ViewModelBase
             if (value != 0 && SelectedModification != "" && SelectedObject != "")
                 ChecksViewModel.Checks =
                     new ObservableCollection<Check>(
-                        CurrentProject?.LoadChecks(SelectedObject, SelectedModification, value));
+                        CurrentProject?.LoadChecks(SelectedObject, SelectedModification, value) ?? []);
             else
                 ChecksViewModel.Checks.Clear();
 
@@ -118,6 +120,7 @@ public class MainWindowViewModel : ViewModelBase
     // Команды
     public ReactiveCommand<Unit, Unit> OpenProjectCommand { get; }
     public ReactiveCommand<Unit, Unit> CloseProjectCommand { get; }
+    public ReactiveCommand<Unit, Unit> StartChecksCommand { get; }
 
     private Project? _selectedProject;
 
@@ -132,6 +135,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         OpenProjectCommand = ReactiveCommand.CreateFromTask(OpenProject);
         CloseProjectCommand = ReactiveCommand.Create(() => { CurrentProject = null; });
+        StartChecksCommand = ReactiveCommand.Create(StartChecks);
     }
 
     private async Task OpenProject()
@@ -170,5 +174,18 @@ public class MainWindowViewModel : ViewModelBase
                 }
             }
         }
+    }
+
+    private void StartChecks()
+    {
+        var checks = new Check[ChecksViewModel.Checks.Count];
+        ChecksViewModel.Checks.CopyTo(checks, 0);
+
+        foreach (var check in checks)
+        {
+            check.CheckResult = Random.Shared.Next(MaxCheckResult);
+        }
+
+        ChecksViewModel.Checks = new ObservableCollection<Check>(checks);
     }
 }
