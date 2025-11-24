@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using FastReport;
 using Microsoft.Data.Sqlite;
 
 namespace TestAssigment.Models;
@@ -12,8 +11,8 @@ public class Project : IDisposable
 {
     private class JsonProject
     {
-        public string Name { get; set; }
-        public string Equipment { get; set; }
+        public string Name { get; set; } = "";
+        public string Equipment { get; set; } = "";
     }
 
     public string Name { get; }
@@ -220,7 +219,7 @@ public class Project : IDisposable
 
     public void SaveReport(string obj, string modification, int checkNum, IEnumerable<Check> checks)
     {
-        var report = new Report();
+        
     }
 
     public void Dispose()
