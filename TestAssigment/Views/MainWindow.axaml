@@ -3,8 +3,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:TestAssigment.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-        MinWidth="900" MinHeight="600" FontSize="14"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+        MinWidth="1000" MinHeight="600" FontSize="14"
         x:DataType="vm:MainWindowViewModel"
         x:CompileBindings="True"
         x:Class="TestAssigment.Views.MainWindow"
@@ -88,11 +88,13 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="№" Width="Auto" Binding="{Binding N}" />
                 <DataGridTextColumn Header="Контакт 1" Width="Auto" Binding="{Binding Contact1}" />
+                <DataGridTextColumn Header="Порт 1" Width="Auto" Binding="{Binding Port1}" />
                 <DataGridTextColumn Header="Контакт 2" Width="Auto" Binding="{Binding Contact2}" />
+                <DataGridTextColumn Header="Порт 2" Width="Auto" Binding="{Binding Port2}" />
                 <DataGridTextColumn Header="Тип проверки" Width="Auto" Binding="{Binding CheckType}" />
                 <DataGridTextColumn Header="Объект" Width="Auto" Binding="{Binding Object}" />
                 <DataGridTextColumn Header="Модификации объекта" Width="Auto" Binding="{Binding Modifications}" />
-                <DataGridTextColumn Header="Результат проверки" Width="Auto" Binding="{Binding CheckResult}" />
+                <DataGridTextColumn Header="Результат проверки" Width="*" Binding="{Binding CheckResult}" />
             </DataGrid.Columns>
         </DataGrid>
         <Label

@@ -45,17 +45,22 @@ public class Project : IDisposable
 
     private const string LoadCheckStmt =
         """
-        SELECT contact1, contact2, check_type, modifications 
-        FROM checks
+        SELECT c.contact1, l1.port, c.contact2, l2.port, c.check_type, c.modifications 
+        FROM checks c
+        JOIN layout l1 ON c.obj_id = l1.obj_id AND c.contact1 = l1.contact
+        JOIN layout l2 ON c.obj_id = l2.obj_id AND c.contact2 = l2.contact
         WHERE 
-            obj_id = (SELECT obj_id FROM objects WHERE name = @obj_name) AND
-            modifications LIKE @modification AND
-            check_num = @check_num
+            c.obj_id = (SELECT o.obj_id FROM objects o WHERE o.name = @obj_name) AND
+            c.modifications LIKE @modification AND
+            c.check_num = @check_num
         ;
         """;
 
+    private Uri _uri;
+
     public Project(Uri uri)
     {
+        _uri = uri;
         var files = (new DirectoryInfo(uri.LocalPath)).GetFiles();
 
         // Проверяем есть ли в данной папке файл проекта
@@ -104,6 +109,8 @@ public class Project : IDisposable
 
         var reader = loadModifications.ExecuteReader();
         var result = new List<string>();
+        // Добавить возможность выбрать все модификации
+        result.Add(" ");
 
         while (reader.Read())
         {
@@ -130,12 +137,12 @@ public class Project : IDisposable
         return result;
     }
 
-    public List<Check> LoadChecks(string obj, string modification, int check_num)
+    public List<Check> LoadChecks(string obj, string modification, int checkNum)
     {
         using var loadChechs = new SqliteCommand(LoadCheckStmt, Database);
         loadChechs.Parameters.Add("@obj_name", SqliteType.Text).Value = obj;
         loadChechs.Parameters.Add("@modification", SqliteType.Text).Value = $"%{modification}%";
-        loadChechs.Parameters.Add("@check_num", SqliteType.Integer).Value = check_num;
+        loadChechs.Parameters.Add("@check_num", SqliteType.Integer).Value = checkNum;
 
         var reader = loadChechs.ExecuteReader();
         var result = new List<Check>();
@@ -148,13 +155,19 @@ public class Project : IDisposable
                 reader.GetString(0),
                 reader.GetString(1),
                 reader.GetString(2),
-                obj,
                 reader.GetString(3),
+                reader.GetString(4),
+                obj,
+                reader.GetString(5),
                 null);
             result.Add(check);
         }
 
         return result;
+    }
+
+    public void SaveToDB(string obj, string modification, int checkNum, List<Check> checks)
+    {
     }
 
     public void Dispose()

@@ -86,9 +86,8 @@ public class MainWindowViewModel : ViewModelBase
                     new ObservableCollection<int>(CurrentProject?.LoadCheckNums(SelectedObject, value) ?? []);
             else
             {
-                ChecksViewModel.CheckNums.Clear();
-                ChecksViewModel.CheckNums.Clear();
-                ChecksViewModel.Checks.Clear();
+                ChecksViewModel.CheckNums = [];
+                ChecksViewModel.Checks = [];
             }
 
             this.RaiseAndSetIfChanged(ref _selectedModification, value);
