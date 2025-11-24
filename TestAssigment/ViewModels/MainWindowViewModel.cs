@@ -186,6 +186,7 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         ChecksViewModel.Checks = new ObservableCollection<Check>(checks);
-        CurrentProject?.SaveToDB(SelectedObject, SelectedModification, SelectedCheckNum, checks);
+        CurrentProject?.SaveToDb(SelectedObject, SelectedModification, SelectedCheckNum, checks);
+        CurrentProject?.SaveReport(SelectedObject, SelectedModification, SelectedCheckNum, checks);
     }
 }

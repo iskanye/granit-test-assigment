@@ -20,6 +20,10 @@
         <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
       </PackageReference>
       <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0"/>
+      <PackageReference Include="FastReport.Compat" Version="2026.1.2"/>
+      <PackageReference Include="FastReport.Data.SQLite" Version="2026.1.2"/>
+      <PackageReference Include="FastReport.OpenSource" Version="2026.1.2"/>
+      <PackageReference Include="FastReport.OpenSource.Export.PdfSimple" Version="2026.1.2"/>
       <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" />
       <PackageReference Include="ReactiveUI.Avalonia" Version="11.3.8"/>
   </ItemGroup>

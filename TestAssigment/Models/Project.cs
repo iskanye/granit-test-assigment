@@ -1,8 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SQLite;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using FastReport;
+using FastReport.Data;
+using FastReport.Export.Html;
+using FastReport.Export.PdfSimple;
+using FastReport.Utils;
 using Microsoft.Data.Sqlite;
 
 namespace TestAssigment.Models;
@@ -18,7 +26,6 @@ public class Project : IDisposable
     public string Name { get; }
 
     public SqliteConnection Database { get; }
-    public SqliteConnection? ChecksResultDb { get; }
 
     private const string LoadObjectsStmt =
         """
@@ -93,12 +100,6 @@ public class Project : IDisposable
             var project = JsonSerializer.Deserialize<JsonProject>(jsonProject)!;
 
             Database = new SqliteConnection($"Filename={uri.LocalPath + '\\' + project.Name}.db");
-
-            // Проверяем есть ли файл проверок
-            if (files.Any(f => f.Name == "checkResults.db"))
-            {
-                ChecksResultDb = new SqliteConnection($"Filename={uri.LocalPath + "\\checkResults.db"}.db");
-            }
 
             Name = project.Name;
         }
@@ -189,7 +190,7 @@ public class Project : IDisposable
         return result;
     }
 
-    public void SaveToDB(string obj, string modification, int checkNum, IEnumerable<Check> checks)
+    public void SaveToDb(string obj, string modification, int checkNum, IEnumerable<Check> checks)
     {
         using var conn = new SqliteConnection($"Filename={_uri.LocalPath}\\{obj}_{modification}_{checkNum}.db");
         conn.Open();
@@ -219,15 +220,147 @@ public class Project : IDisposable
 
     public void SaveReport(string obj, string modification, int checkNum, IEnumerable<Check> checks)
     {
-        
+        using var conn = new SQLiteConnection($"Data Source={_uri.LocalPath}\\{obj}_{modification}_{checkNum}.db");
+        conn.Open();
+
+        using var select = new SQLiteDataAdapter("SELECT * FROM report ORDER BY n;", conn);
+
+        var dataSet = new DataSet();
+        select.Fill(dataSet, "report");
+
+        var report = new Report();
+        report.RegisterData(dataSet.Tables["report"], "Checks");
+        report.GetDataSource("Checks").Enabled = true;
+
+        ReportPage page = new ReportPage();
+        page.Name = "Page";
+        report.Pages.Add(page);
+
+// create ReportTitle band
+        page.ReportTitle = new ReportTitleBand();
+        page.ReportTitle.Name = "ReportTitle";
+
+// set its height to 1.5cm
+        page.ReportTitle.Height = Units.Centimeters * 1.5f;
+
+// create group header
+        GroupHeaderBand group1 = new GroupHeaderBand();
+        group1.Name = "GroupHeader";
+        group1.Height = Units.Centimeters * 1;
+
+// set group condition
+        group1.Condition = "[Checks.object]";
+
+// add group to the page.Bands collection
+        page.Bands.Add(group1);
+
+// create group footer
+        group1.GroupFooter = new GroupFooterBand();
+        group1.GroupFooter.Name = "GroupFooter";
+        group1.GroupFooter.Height = Units.Centimeters * 1;
+
+// create DataBand
+        DataBand data = new DataBand();
+        data.Name = "Data";
+        data.Height = Units.Centimeters * 0.5f;
+
+// set data source
+        data.DataSource = report.GetDataSource("Checks");
+
+// connect databand to a group
+        group1.Data = data;
+        // create "Text" objects
+// report title
+        TextObject text1 = new TextObject();
+        text1.Name = "Header";
+
+// set bounds
+        text1.Bounds = new RectangleF(0, 0, Units.Centimeters * 19, Units.Centimeters * 1);
+
+// set text
+        text1.Text = "РЕЗУЛЬТАТЫ ПРОВЕРОК";
+
+// set appearance
+        text1.HorzAlign = HorzAlign.Center;
+        text1.Font = new Font("Tahoma", 14, FontStyle.Bold);
+
+// add it to ReportTitle
+        page.ReportTitle.Objects.Add(text1);
+
+        TextObject text3 = new TextObject();
+        text3.Name = "Contact1";
+        text3.Bounds = new RectangleF(Units.Centimeters * 1, 0, Units.Centimeters * 2, Units.Centimeters * 0.5f);
+        text3.Text = "[Checks.contact1]";
+        text3.Font = new Font("Tahoma", 8);
+
+        data.Objects.Add(text3);
+
+        TextObject text4 = new TextObject();
+        text4.Name = "Port1";
+        text4.Bounds = new RectangleF(Units.Centimeters * 3, 0, Units.Centimeters * 2, Units.Centimeters * 0.5f);
+        text4.Text = "[Checks.port1]";
+        text4.Font = new Font("Tahoma", 8);
+
+        data.Objects.Add(text4);
+
+        TextObject text5 = new TextObject();
+        text5.Name = "Contact2";
+        text5.Bounds = new RectangleF(Units.Centimeters * 5, 0, Units.Centimeters * 2, Units.Centimeters * 0.5f);
+        text5.Text = "[Checks.contact2]";
+        text5.Font = new Font("Tahoma", 8);
+
+        data.Objects.Add(text5);
+
+        TextObject text6 = new TextObject();
+        text6.Name = "Port2";
+        text6.Bounds = new RectangleF(Units.Centimeters * 7, 0, Units.Centimeters * 2, Units.Centimeters * 0.5f);
+        text6.Text = "[Checks.port2]";
+        text6.Font = new Font("Tahoma", 8);
+
+        data.Objects.Add(text6);
+
+        TextObject text7 = new TextObject();
+        text7.Name = "CheckType";
+        text7.Bounds = new RectangleF(Units.Centimeters * 9, 0, Units.Centimeters * 5, Units.Centimeters * 0.5f);
+        text7.Text = "[Checks.check_type]";
+        text7.Font = new Font("Tahoma", 8);
+
+        data.Objects.Add(text7);
+
+        TextObject text8 = new TextObject();
+        text8.Name = "Object";
+        text8.Bounds = new RectangleF(Units.Centimeters * 14, 0, Units.Centimeters * 2, Units.Centimeters * 0.5f);
+        text8.Text = "[Checks.object]";
+        text8.Font = new Font("Tahoma", 8);
+
+        data.Objects.Add(text8);
+
+        TextObject text9 = new TextObject();
+        text9.Name = "Modifications";
+        text9.Bounds = new RectangleF(Units.Centimeters * 16, 0, Units.Centimeters * 6, Units.Centimeters * 0.5f);
+        text9.Text = "[Checks.modifications]";
+        text9.Font = new Font("Tahoma", 8);
+
+        data.Objects.Add(text9);
+
+        TextObject text10 = new TextObject();
+        text10.Name = "CheckResults";
+        text10.Bounds = new RectangleF(Units.Centimeters * 22, 0, Units.Centimeters * 5, Units.Centimeters * 0.5f);
+        text10.Text = "[Checks.result]";
+        text10.Font = new Font("Tahoma", 8);
+
+        data.Objects.Add(text10);
+
+        report.Prepare();
+
+        var export = new HTMLExport();
+        report.Export(export, $"{_uri.AbsolutePath}\\{obj}_{modification}_{checkNum}.html");
     }
 
     public void Dispose()
     {
         Database.Close();
-        ChecksResultDb?.Close();
         Database.Dispose();
-        ChecksResultDb?.Dispose();
 
         GC.SuppressFinalize(this);
     }
