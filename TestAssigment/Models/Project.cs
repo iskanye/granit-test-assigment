@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using FastReport;
 using Microsoft.Data.Sqlite;
 
 namespace TestAssigment.Models;
@@ -54,6 +55,29 @@ public class Project : IDisposable
             c.modifications LIKE @modification AND
             c.check_num = @check_num
         ;
+        """;
+
+    private const string ReportCreateStmt =
+        """
+        DROP TABLE IF EXISTS report;
+        CREATE TABLE IF NOT EXISTS report 
+        (
+            n INTEGER NOT NULL,
+            contact1 TEXT NOT NULL,
+            port1 TEXT NOT NULL,
+            contact2 TEXT NOT NULL,
+            port2 TEXT NOT NULL,
+            check_type TEXT NOT NULL,
+            object TEXT NOT NULL,
+            modifications TEXT NOT NULL,
+            result INTEGER NOT NULL
+        );
+        """;
+
+    private const string ReportInsertStmt =
+        """
+        INSERT INTO report (n, contact1, port1, contact2, port2, check_type, object, modifications, result)
+        VALUES (@n, @contact1, @port1, @contact2, @port2, @check_type, @object, @modifications, @result);
         """;
 
     private Uri _uri;
@@ -166,8 +190,37 @@ public class Project : IDisposable
         return result;
     }
 
-    public void SaveToDB(string obj, string modification, int checkNum, List<Check> checks)
+    public void SaveToDB(string obj, string modification, int checkNum, IEnumerable<Check> checks)
     {
+        using var conn = new SqliteConnection($"Filename={_uri.LocalPath}\\{obj}_{modification}_{checkNum}.db");
+        conn.Open();
+
+        using var create = new SqliteCommand(ReportCreateStmt, conn);
+        create.ExecuteNonQuery();
+
+        var i = 1;
+        foreach (var check in checks)
+        {
+            using var insert = new SqliteCommand(ReportInsertStmt, conn);
+            insert.Parameters.Add("@n", SqliteType.Integer).Value = i++;
+            insert.Parameters.Add("@object", SqliteType.Text).Value = obj;
+            insert.Parameters.Add("@contact1", SqliteType.Text).Value = check.Contact1;
+            insert.Parameters.Add("@port1", SqliteType.Text).Value = check.Port1;
+            insert.Parameters.Add("@contact2", SqliteType.Text).Value = check.Contact2;
+            insert.Parameters.Add("@port2", SqliteType.Text).Value = check.Port2;
+            insert.Parameters.Add("@modifications", SqliteType.Text).Value = check.Modifications;
+            insert.Parameters.Add("@check_type", SqliteType.Text).Value = check.CheckType;
+            insert.Parameters.Add("@result", SqliteType.Integer).Value = check.CheckResult;
+
+            insert.ExecuteNonQuery();
+        }
+
+        conn.Close();
+    }
+
+    public void SaveReport(string obj, string modification, int checkNum, IEnumerable<Check> checks)
+    {
+        var report = new Report();
     }
 
     public void Dispose()
