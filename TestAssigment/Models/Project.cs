@@ -7,9 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using FastReport;
-using FastReport.Data;
 using FastReport.Export.Html;
-using FastReport.Export.PdfSimple;
 using FastReport.Utils;
 using Microsoft.Data.Sqlite;
 
